@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users — ExamOnline{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h1>Manage Users</h1>
+      <p>{{ users.count }} total users in the system</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th><th>Username</th><th>Role</th><th>Email</th>
+            <th>Joined</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:.7rem">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem">
+                  {{ u.first_name.0|upper }}{{ u.last_name.0|upper }}
+                </div>
+                {{ u.get_full_name|default:"—" }}
+              </div>
+            </td>
+            <td><span style="font-family:var(--mono);color:var(--text-dim)">@{{ u.username }}</span></td>
+            <td><span class="badge-role {{ u.role }}">{{ u.role }}</span></td>
+            <td style="color:var(--text-dim);font-size:.85rem">{{ u.email|default:"—" }}</td>
+            <td style="color:var(--text-dim);font-size:.85rem">{{ u.date_joined|date:"M d, Y" }}</td>
+            <td>
+              <span style="color:{% if u.is_active %}var(--accent3){% else %}var(--accent2){% endif %};font-family:var(--mono);font-size:.8rem" id="status-{{ u.id }}">
+                {% if u.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+              </span>
+            </td>
+            <td>
+              {% if u != request.user %}
+              <button onclick="toggleUser({{ u.id }})" class="btn btn-ghost btn-sm" id="btn-{{ u.id }}">
+                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+              </button>
+              {% else %}
+              <span style="color:var(--text-dim);font-size:.8rem">You</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+function toggleUser(id) {
+  fetch(`/toggle-user/${id}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'}
+  }).then(r => r.json()).then(data => {
+    const status = document.getElementById('status-' + id);
+    const btn = document.getElementById('btn-' + id);
+    if (data.active) {
+      status.textContent = 'ACTIVE';
+      status.style.color = 'var(--accent3)';
+      btn.textContent = 'Deactivate';
+    } else {
+      status.textContent = 'INACTIVE';
+      status.style.color = 'var(--accent2)';
+      btn.textContent = 'Activate';
+    }
+  });
+}
+</script>
+{% endblock %}

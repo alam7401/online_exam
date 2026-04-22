@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Create Exam{% endblock %}
+{% block extra_css %}
+<style>
+.q-item { display:flex; align-items:flex-start; gap:.8rem; padding:.8rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.5rem; cursor:pointer; transition:all .2s; }
+.q-item:hover { border-color:var(--accent); background:rgba(108,99,255,.05); }
+.q-item.selected { border-color:var(--accent); background:rgba(108,99,255,.1); }
+.q-item input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; margin-top:3px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header"><h1>Create New Exam</h1></div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="grid-2" style="gap:2rem">
+      <div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <div class="section-title">Exam Details</div>
+          <div class="form-group">
+            <label class="form-label">Exam Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Mid-Term Examination" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select name="subject" class="form-control" required>
+              {% for s in subjects %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" placeholder="Optional instructions..."></textarea>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Duration (minutes)</label>
+              <input type="number" name="duration" class="form-control" value="60" min="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pass Marks</label>
+              <input type="number" name="pass_marks" class="form-control" value="0" min="0">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Start Time</label>
+              <input type="datetime-local" name="start_time" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Time</label>
+              <input type="datetime-local" name="end_time" class="form-control" required>
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer">
+            <input type="checkbox" name="shuffle" style="accent-color:var(--accent);width:16px;height:16px">
+            <span style="font-size:.9rem">Shuffle questions for each student</span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Create Exam</button>
+      </div>
+      <div class="card">
+        <div class="section-title">Select Questions</div>
+        <div style="margin-bottom:1rem;color:var(--text-dim);font-size:.85rem">
+          Selected: <span id="selCount" style="color:var(--accent3);font-weight:700">0</span> | 
+          Total marks: <span id="totMarks" style="color:var(--warning);font-weight:700">0</span>
+        </div>
+        <div style="max-height:500px;overflow-y:auto">
+          {% for q in questions %}
+          <label class="q-item" id="qi-{{ q.id }}">
+            <input type="checkbox" name="questions" value="{{ q.id }}" onchange="updateCount(this, {{ q.marks }})">
+            <div style="flex:1">
+              <div style="font-size:.9rem;font-weight:500">{{ q.text|truncatechars:80 }}</div>
+              <div style="display:flex;gap:.8rem;margin-top:.4rem">
+                <span style="font-size:.75rem;color:var(--text-dim)">{{ q.subject.name }}</span>
+                <span class="tag tag-{{ q.difficulty }}" style="font-size:.65rem">{{ q.difficulty }}</span>
+                <span style="font-family:var(--mono);font-size:.75rem;color:var(--warning)">{{ q.marks }}pts</span>
+              </div>
+            </div>
+          </label>
+          {% empty %}
+          <div class="empty-state"><div class="icon">📝</div><p>No questions available. <a href="{% url 'create_question' %}">Add questions first</a></p></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+window.onload = function() {
+    const now = new Date();
+    const later = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    
+    function formatDate(d) {
+        const offset = d.getTimezoneOffset();
+        const local = new Date(d.getTime() - offset * 60 * 1000);
+        return local.toISOString().slice(0, 16);
+    }
+    
+    document.querySelector('input[name="start_time"]').value = formatDate(now);
+    document.querySelector('input[name="end_time"]').value = formatDate(later);
+}
+let totalMarks = 0, count = 0;
+function updateCount(cb, marks) {
+  const item = cb.closest('.q-item');
+  if (cb.checked) { totalMarks += marks; count++; item.classList.add('selected'); }
+  else { totalMarks -= marks; count--; item.classList.remove('selected'); }
+  document.getElementById('selCount').textContent = count;
+  document.getElementById('totMarks').textContent = totalMarks;
+}
+</script>
+{% endblock %}

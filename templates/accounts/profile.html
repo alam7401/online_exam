@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Profile — ExamOnline{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your account settings</p>
+  </div>
+  {% if messages %}<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+  <div style="max-width:600px">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:2rem">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff">
+          {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+        </div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:800">{{ user.get_full_name }}</div>
+          <div style="color:var(--text-dim)">@{{ user.username }}</div>
+          <span class="badge-role {{ user.role }}" style="margin-top:.4rem;display:inline-block">{{ user.role }}</span>
+        </div>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" value="{{ user.email }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea name="bio" class="form-control">{{ user.bio }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

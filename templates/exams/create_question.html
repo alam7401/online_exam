@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Add Question{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>Add Question</h1>
+    <p>Add to your question bank</p>
+  </div>
+  <div style="max-width:700px">
+    <div class="card">
+      <form method="post">
+        {% csrf_token %}
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select name="subject" class="form-control" required>
+              {% for s in subjects %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Difficulty</label>
+            <select name="difficulty" class="form-control">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Question Text</label>
+          <textarea name="text" class="form-control" rows="3" placeholder="Enter the question..." required></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Option A</label>
+            <input type="text" name="option_a" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Option B</label>
+            <input type="text" name="option_b" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Option C</label>
+            <input type="text" name="option_c" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Option D</label>
+            <input type="text" name="option_d" class="form-control" required>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Correct Answer</label>
+            <select name="correct_answer" class="form-control" required>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Marks</label>
+            <input type="number" name="marks" class="form-control" value="1" min="1" max="10">
+          </div>
+        </div>
+        <div style="display:flex;gap:.7rem">
+          <button type="submit" class="btn btn-primary">Add Question</button>
+          <a href="{% url 'question_bank' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

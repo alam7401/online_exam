@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Exam Result Detail{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h1>{{ attempt.exam.title }}</h1>
+      <p>{{ attempt.student.get_full_name|default:attempt.student.username }} &bull; {{ attempt.submitted_at|date:"M d, Y H:i" }}</p>
+    </div>
+    <a href="javascript:history.back()" class="btn btn-ghost">&larr; Back</a>
+  </div>
+
+  <!-- Score Summary -->
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:2rem;margin-bottom:2rem">
+    <div class="card" style="text-align:center;padding:2.5rem">
+      <div style="font-family:var(--mono);font-size:3.5rem;font-weight:700;color:{% if attempt.passed %}var(--accent3){% else %}var(--accent2){% endif %}">
+        {{ attempt.score }}
+      </div>
+      <div style="color:var(--text-dim);margin:.3rem 0">/{{ attempt.total_marks }} marks</div>
+      <div style="font-size:1.5rem;font-weight:800;margin:.8rem 0;color:{% if attempt.passed %}var(--accent3){% else %}var(--accent2){% endif %}">
+        {% if attempt.passed %}PASSED{% else %}FAILED{% endif %}
+      </div>
+      <div style="font-family:var(--mono);font-size:1.2rem;color:var(--warning)">{{ attempt.percentage }}%</div>
+      <div class="progress-bar" style="margin-top:1rem">
+        <div class="progress-fill {% if attempt.percentage >= 50 %}green{% endif %}" style="width:{{ attempt.percentage }}%"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Stats</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div style="background:var(--surface2);border-radius:8px;padding:1rem">
+          <div style="font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--accent3)">
+            {{ answers|length }}
+          </div>
+          <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Questions Attempted</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:1rem">
+          <div style="font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--accent3)">
+            {% with correct=0 %}
+            {{ attempt.answers.all|length }}
+            {% endwith %}
+          </div>
+          <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Total Questions</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:1rem">
+          <div style="font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--accent3)">
+            {% for a in answers %}{% if a.is_correct %}✓{% endif %}{% endfor %}
+          </div>
+          <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Correct Answers</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:1rem">
+          <div style="font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--text-dim)">
+            {{ attempt.time_taken }}s
+          </div>
+          <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Time Taken</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Answers Review -->
+  <div class="section-title">Answer Review</div>
+  {% for answer in answers %}
+  <div class="card" style="margin-bottom:1rem;border-left:3px solid {% if answer.is_correct %}var(--accent3){% else %}var(--accent2){% endif %}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">QUESTION {{ forloop.counter }}</div>
+      <span class="tag {% if answer.is_correct %}tag-pass{% else %}tag-fail{% endif %}">
+        {% if answer.is_correct %}+{{ answer.marks_obtained }} pts{% else %}0 pts{% endif %}
+      </span>
+    </div>
+    <div style="font-weight:600;margin-bottom:1rem;font-size:.95rem">{{ answer.question.text }}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+      {% for opt, text in answer.question.options %}{% endfor %}
+      {% for opt, text in answer.question.options %}{% endfor %}
+      <div style="padding:.7rem;border-radius:8px;font-size:.9rem;
+        {% if answer.question.correct_answer == 'A' %}background:rgba(67,230,181,.15);border:1px solid var(--accent3);
+        {% elif answer.selected_option == 'A' and not answer.is_correct %}background:rgba(255,101,132,.15);border:1px solid var(--accent2);
+        {% else %}background:var(--surface2);border:1px solid var(--border);{% endif %}">
+        <span style="font-family:var(--mono);font-weight:700;margin-right:.5rem">A.</span>{{ answer.question.option_a }}
+        {% if answer.question.correct_answer == 'A' %}<span style="float:right;color:var(--accent3)">✓</span>{% endif %}
+        {% if answer.selected_option == 'A' and answer.question.correct_answer != 'A' %}<span style="float:right;color:var(--accent2)">✗</span>{% endif %}
+      </div>
+      <div style="padding:.7rem;border-radius:8px;font-size:.9rem;
+        {% if answer.question.correct_answer == 'B' %}background:rgba(67,230,181,.15);border:1px solid var(--accent3);
+        {% elif answer.selected_option == 'B' and not answer.is_correct %}background:rgba(255,101,132,.15);border:1px solid var(--accent2);
+        {% else %}background:var(--surface2);border:1px solid var(--border);{% endif %}">
+        <span style="font-family:var(--mono);font-weight:700;margin-right:.5rem">B.</span>{{ answer.question.option_b }}
+        {% if answer.question.correct_answer == 'B' %}<span style="float:right;color:var(--accent3)">✓</span>{% endif %}
+        {% if answer.selected_option == 'B' and answer.question.correct_answer != 'B' %}<span style="float:right;color:var(--accent2)">✗</span>{% endif %}
+      </div>
+      <div style="padding:.7rem;border-radius:8px;font-size:.9rem;
+        {% if answer.question.correct_answer == 'C' %}background:rgba(67,230,181,.15);border:1px solid var(--accent3);
+        {% elif answer.selected_option == 'C' and not answer.is_correct %}background:rgba(255,101,132,.15);border:1px solid var(--accent2);
+        {% else %}background:var(--surface2);border:1px solid var(--border);{% endif %}">
+        <span style="font-family:var(--mono);font-weight:700;margin-right:.5rem">C.</span>{{ answer.question.option_c }}
+        {% if answer.question.correct_answer == 'C' %}<span style="float:right;color:var(--accent3)">✓</span>{% endif %}
+        {% if answer.selected_option == 'C' and answer.question.correct_answer != 'C' %}<span style="float:right;color:var(--accent2)">✗</span>{% endif %}
+      </div>
+      <div style="padding:.7rem;border-radius:8px;font-size:.9rem;
+        {% if answer.question.correct_answer == 'D' %}background:rgba(67,230,181,.15);border:1px solid var(--accent3);
+        {% elif answer.selected_option == 'D' and not answer.is_correct %}background:rgba(255,101,132,.15);border:1px solid var(--accent2);
+        {% else %}background:var(--surface2);border:1px solid var(--border);{% endif %}">
+        <span style="font-family:var(--mono);font-weight:700;margin-right:.5rem">D.</span>{{ answer.question.option_d }}
+        {% if answer.question.correct_answer == 'D' %}<span style="float:right;color:var(--accent3)">✓</span>{% endif %}
+        {% if answer.selected_option == 'D' and answer.question.correct_answer != 'D' %}<span style="float:right;color:var(--accent2)">✗</span>{% endif %}
+      </div>
+    </div>
+    {% if not answer.selected_option %}
+    <div style="margin-top:.8rem;color:var(--text-dim);font-size:.85rem;font-style:italic">Not answered</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

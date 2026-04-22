@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard — ExamOnline{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <h1>Teacher Dashboard</h1>
+      <p>Manage your exams and question bank</p>
+    </div>
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+      <a href="{% url 'create_subject' %}" class="btn btn-ghost">+ Subject</a>
+      <a href="{% url 'create_question' %}" class="btn btn-ghost">+ Question</a>
+      <a href="{% url 'create_exam' %}" class="btn btn-primary">+ New Exam</a>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">{{ exams.count }}</div>
+      <div class="stat-label">Total Exams</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-num">{{ subjects.count }}</div>
+      <div class="stat-label">Subjects</div>
+    </div>
+    <div class="stat-card pink">
+      <div class="stat-num">{{ total_questions }}</div>
+      <div class="stat-label">Questions</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-num">{{ total_attempts }}</div>
+      <div class="stat-label">Attempts</div>
+    </div>
+  </div>
+
+  <div class="section-title">My Exams</div>
+  {% if exams %}
+  <div class="grid-2" style="margin-bottom:2rem">
+    {% for exam in exams %}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+        <div>
+          <div class="card-title">{{ exam.title }}</div>
+          <div style="color:var(--text-dim);font-size:.85rem">{{ exam.subject.name }}</div>
+        </div>
+        <span style="font-family:var(--mono);font-size:.75rem;color:{% if exam.is_active %}var(--accent3){% else %}var(--text-dim){% endif %}">
+          {% if exam.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+        </span>
+      </div>
+      <div style="display:flex;gap:1.5rem;margin-bottom:1rem;font-size:.85rem;color:var(--text-dim)">
+        <span>⏱ {{ exam.duration_minutes }}min</span>
+        <span>📝 {{ exam.questions.count }} questions</span>
+        <span>🏆 {{ exam.total_marks }} marks</span>
+        <span>👥 {{ exam.attempt_count }} attempts</span>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <a href="{% url 'exam_results' exam.id %}" class="btn btn-ghost btn-sm">View Results</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">📋</div>
+    <p>No exams yet. <a href="{% url 'create_exam' %}">Create your first exam</a></p>
+  </div>
+  {% endif %}
+
+  <div class="section-title">Subjects</div>
+  <div style="display:flex;flex-wrap:wrap;gap:.7rem">
+    {% for s in subjects %}
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;font-size:.85rem">
+      <span style="font-weight:600">{{ s.name }}</span>
+      <span style="color:var(--text-dim);font-family:var(--mono);font-size:.75rem;margin-left:.5rem">{{ s.code }}</span>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-dim)">No subjects yet. <a href="{% url 'create_subject' %}">Add one</a></p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

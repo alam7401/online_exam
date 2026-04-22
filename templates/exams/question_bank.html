@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Question Bank{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h1>Question Bank</h1>
+      <p>{{ questions.count }} questions total</p>
+    </div>
+    <a href="{% url 'create_question' %}" class="btn btn-primary">+ Add Question</a>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Question</th><th>Subject</th><th>Difficulty</th><th>Marks</th><th>Answer</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for q in questions %}
+          <tr>
+            <td style="font-family:var(--mono);color:var(--text-dim)">{{ forloop.counter }}</td>
+            <td style="max-width:300px">{{ q.text|truncatechars:80 }}</td>
+            <td>{{ q.subject.name }}</td>
+            <td><span class="tag tag-{{ q.difficulty }}">{{ q.difficulty }}</span></td>
+            <td><span style="font-family:var(--mono);font-weight:700">{{ q.marks }}</span></td>
+            <td><span style="font-family:var(--mono);background:var(--surface2);padding:.2rem .6rem;border-radius:4px;color:var(--accent3)">{{ q.correct_answer }}</span></td>
+            <td>
+              <a href="{% url 'delete_question' q.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this question?')">Delete</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><div class="icon">📝</div><p>No questions yet. <a href="{% url 'create_question' %}">Add your first question</a></p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ExamOnline{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<!--<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">-->
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3e;
+  --accent: #6c63ff;
+  --accent2: #ff6584;
+  --accent3: #43e6b5;
+  --text: #e8e8f0;
+  --text-dim: #7a7a9a;
+  --success: #43e6b5;
+  --danger: #ff6584;
+  --warning: #ffd166;
+  --radius: 12px;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent3); }
+
+/* NAV */
+.navbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.nav-brand {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--accent3);
+  letter-spacing: -1px;
+}
+.nav-brand span { color: var(--accent); }
+.nav-links { display: flex; gap: 1rem; align-items: center; }
+.nav-links a {
+  color: var(--text-dim);
+  font-size: .85rem;
+  font-weight: 600;
+  padding: .4rem .8rem;
+  border-radius: 6px;
+  transition: all .2s;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.nav-links a:hover { background: var(--border); color: var(--text); }
+.badge-role {
+  background: var(--accent);
+  color: #fff;
+  font-size: .7rem;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.badge-role.teacher { background: var(--accent3); color: #000; }
+.badge-role.student { background: var(--accent2); }
+
+/* LAYOUT */
+.container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+.page-header { margin-bottom: 2rem; }
+.page-header h1 { font-size: 2rem; font-weight: 800; color: var(--text); }
+.page-header p { color: var(--text-dim); margin-top: .4rem; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: border-color .2s;
+}
+.card:hover { border-color: var(--accent); }
+.card-title { font-weight: 700; font-size: 1rem; margin-bottom: .5rem; color: var(--text); }
+
+/* STAT CARDS */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--accent);
+}
+.stat-card.green::before { background: var(--accent3); }
+.stat-card.pink::before { background: var(--accent2); }
+.stat-card.yellow::before { background: var(--warning); }
+.stat-num { font-family: var(--mono); font-size: 2rem; font-weight: 700; color: var(--text); }
+.stat-label { color: var(--text-dim); font-size: .8rem; margin-top: .3rem; text-transform: uppercase; letter-spacing: .5px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .6rem 1.2rem;
+  border-radius: 8px;
+  border: none; cursor: pointer;
+  font-family: var(--sans); font-weight: 600; font-size: .85rem;
+  transition: all .2s; text-decoration: none;
+  letter-spacing: .3px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #7c73ff; color: #fff; transform: translateY(-1px); }
+.btn-success { background: var(--accent3); color: #000; }
+.btn-success:hover { background: #5af0c5; color: #000; }
+.btn-danger { background: var(--accent2); color: #fff; }
+.btn-danger:hover { background: #ff7a96; }
+.btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: .35rem .8rem; font-size: .8rem; }
+.btn-lg { padding: .9rem 2rem; font-size: 1rem; }
+
+/* FORMS */
+.form-group { margin-bottom: 1.2rem; }
+.form-label { display: block; font-size: .85rem; color: var(--text-dim); margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .5px; }
+.form-control {
+  width: 100%; padding: .7rem 1rem;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-family: var(--sans); font-size: .9rem;
+  transition: border-color .2s;
+}
+.form-control:focus { outline: none; border-color: var(--accent); }
+textarea.form-control { resize: vertical; min-height: 80px; }
+select.form-control { cursor: pointer; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: var(--surface2); padding: .8rem 1rem; text-align: left; font-size: .75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+tbody td { padding: .9rem 1rem; border-bottom: 1px solid var(--border); font-size: .9rem; }
+tbody tr:hover { background: var(--surface2); }
+
+/* ALERTS */
+.messages { list-style: none; margin-bottom: 1rem; }
+.messages li {
+  padding: .8rem 1rem;
+  border-radius: 8px;
+  margin-bottom: .5rem;
+  font-size: .9rem;
+}
+.messages .error { background: rgba(255,101,132,.15); border: 1px solid var(--accent2); color: var(--accent2); }
+.messages .success { background: rgba(67,230,181,.15); border: 1px solid var(--accent3); color: var(--accent3); }
+
+/* TAGS */
+.tag {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 4px;
+  font-size: .75rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.tag-easy { background: rgba(67,230,181,.2); color: var(--accent3); }
+.tag-medium { background: rgba(255,209,102,.2); color: var(--warning); }
+.tag-hard { background: rgba(255,101,132,.2); color: var(--accent2); }
+.tag-pass { background: rgba(67,230,181,.2); color: var(--accent3); }
+.tag-fail { background: rgba(255,101,132,.2); color: var(--accent2); }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+@media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .container { padding: 1rem; } }
+
+/* SECTION */
+.section-title { font-size: 1rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 3rem; color: var(--text-dim); }
+.empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: .4; }
+
+/* PROGRESS */
+.progress-bar { background: var(--surface2); border-radius: 10px; height: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: width .5s; }
+.progress-fill.green { background: var(--accent3); }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<nav class="navbar">
+  <div class="nav-brand">Exam<span>Online</span></div>
+  <div class="nav-links">
+    {% if user.role == 'admin' %}
+      <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+      <a href="{% url 'manage_users' %}">Users</a>
+      <a href="{% url 'all_results' %}">Results</a>
+    {% elif user.role == 'teacher' %}
+      <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
+      <a href="{% url 'question_bank' %}">Questions</a>
+      <a href="{% url 'create_exam' %}">New Exam</a>
+    {% else %}
+      <a href="{% url 'student_dashboard' %}">Dashboard</a>
+      <a href="{% url 'my_results' %}">My Results</a>
+    {% endif %}
+    <a href="{% url 'profile' %}">{{ user.get_full_name|default:user.username }}</a>
+    <span class="badge-role {{ user.role }}">{{ user.role }}</span>
+    <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm">Logout</a>
+  </div>
+</nav>
+{% endif %}
+<main>
+{% if messages %}
+<div class="container" style="padding-bottom:0">
+  <ul class="messages">
+    {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% block content %}{% endblock %}
+</main>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

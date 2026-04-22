@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% block title %}{{ exam.title }} — ExamPro{% endblock %}
+{% block extra_css %}
+<style>
+.exam-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 64px; z-index: 50;
+}
+.timer {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent3);
+  background: var(--surface2);
+  padding: .4rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  min-width: 100px;
+  text-align: center;
+  transition: color .3s;
+}
+.timer.warning { color: var(--warning); }
+.timer.danger { color: var(--accent2); animation: timerPulse 1s infinite; }
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.q-nav {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  padding: 1rem; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 2rem;
+}
+.q-dot {
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: .8rem;
+  cursor: pointer; transition: all .2s;
+  background: var(--surface2);
+}
+.q-dot:hover { border-color: var(--accent); }
+.q-dot.answered { background: var(--accent); border-color: var(--accent); color: #fff; }
+.q-dot.current { border-color: var(--accent3); color: var(--accent3); }
+
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+.q-number { font-family: var(--mono); font-size: .8rem; color: var(--text-dim); margin-bottom: .8rem; text-transform: uppercase; letter-spacing: .5px; }
+.q-text { font-size: 1.05rem; font-weight: 600; line-height: 1.6; margin-bottom: 1.5rem; }
+.options { display: flex; flex-direction: column; gap: .7rem; }
+.option-label {
+  display: flex; align-items: center; gap: 1rem;
+  padding: .9rem 1.2rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: .95rem;
+}
+.option-label:hover { border-color: var(--accent); background: rgba(108,99,255,.05); }
+.option-label input { display: none; }
+.option-label.selected { border-color: var(--accent); background: rgba(108,99,255,.1); }
+.option-key {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700;
+  font-size: .85rem; flex-shrink: 0;
+  transition: all .2s;
+}
+.option-label.selected .option-key { background: var(--accent); color: #fff; }
+
+.q-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+.submit-btn { background: var(--accent2); color: #fff; padding: .9rem 2rem; border-radius: 10px; border: none; font-family: var(--sans); font-weight: 700; font-size: 1rem; cursor: pointer; transition: all .2s; }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,101,132,.3); }
+
+/* Result overlay */
+.result-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.result-overlay.show { display: flex; }
+.result-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3rem;
+  text-align: center;
+  max-width: 450px;
+  width: 90%;
+  animation: popIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.result-score { font-family: var(--mono); font-size: 4rem; font-weight: 700; line-height: 1; }
+.result-pct { font-size: 1.2rem; color: var(--text-dim); margin: .5rem 0 1.5rem; }
+.result-status { font-size: 1.5rem; font-weight: 800; margin-bottom: 1.5rem; }
+.result-status.pass { color: var(--accent3); }
+.result-status.fail { color: var(--accent2); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="exam-header">
+  <div>
+    <div style="font-weight:700;font-size:1rem">{{ exam.title }}</div>
+    <div style="color:var(--text-dim);font-size:.8rem">{{ exam.subject.name }} &bull; {{ questions|length }} questions</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div style="font-size:.85rem;color:var(--text-dim)">Answered: <span id="answeredCount" style="color:var(--accent3);font-weight:700">0</span>/{{ questions|length }}</div>
+    <div class="timer" id="timer">--:--</div>
+    <button onclick="confirmSubmit()" class="submit-btn">Submit Exam</button>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Nav dots -->
+  <div class="q-nav" id="qNav">
+    {% for q in questions %}
+    <div class="q-dot {% if forloop.first %}current{% endif %}" id="dot-{{ forloop.counter0 }}" onclick="scrollToQ({{ forloop.counter0 }})">{{ forloop.counter }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- Questions -->
+  <div id="questionsContainer">
+    {% for q in questions %}
+    <div class="question-card" id="q-{{ forloop.counter0 }}">
+      <div class="q-number">Question {{ forloop.counter }} of {{ questions|length }} &bull; <span class="tag tag-{{ q.difficulty }}">{{ q.difficulty }}</span> &bull; {{ q.marks }} mark{{ q.marks|pluralize }}</div>
+      <div class="q-text">{{ q.text }}</div>
+      <div class="options">
+        {% for opt, label in q.options %}{% endfor %}
+        <label class="option-label" id="opt-{{ q.id }}-A">
+          <input type="radio" name="q{{ q.id }}" value="A" onchange="selectOption('{{ q.id }}', 'A', {{ forloop.parentloop.counter0 }})">
+          <div class="option-key">A</div>
+          <span>{{ q.option_a }}</span>
+        </label>
+        <label class="option-label" id="opt-{{ q.id }}-B">
+          <input type="radio" name="q{{ q.id }}" value="B" onchange="selectOption('{{ q.id }}', 'B', {{ forloop.parentloop.counter0 }})">
+          <div class="option-key">B</div>
+          <span>{{ q.option_b }}</span>
+        </label>
+        <label class="option-label" id="opt-{{ q.id }}-C">
+          <input type="radio" name="q{{ q.id }}" value="C" onchange="selectOption('{{ q.id }}', 'C', {{ forloop.parentloop.counter0 }})">
+          <div class="option-key">C</div>
+          <span>{{ q.option_c }}</span>
+        </label>
+        <label class="option-label" id="opt-{{ q.id }}-D">
+          <input type="radio" name="q{{ q.id }}" value="D" onchange="selectOption('{{ q.id }}', 'D', {{ forloop.parentloop.counter0 }})">
+          <div class="option-key">D</div>
+          <span>{{ q.option_d }}</span>
+        </label>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="text-align:center;margin:2rem 0">
+    <button onclick="confirmSubmit()" class="submit-btn">🎯 Submit Exam</button>
+  </div>
+</div>
+
+<!-- Result Overlay -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-box">
+    <div style="font-size:3rem;margin-bottom:.5rem" id="resultEmoji">🎉</div>
+    <div class="result-score" id="resultScore">--/--</div>
+    <div class="result-pct" id="resultPct">Calculating...</div>
+    <div class="result-status" id="resultStatus">--</div>
+    <div style="color:var(--text-dim);font-size:.9rem;margin-bottom:2rem" id="resultMsg"></div>
+    <a id="resultLink" href="#" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">View Detailed Results →</a>
+  </div>
+</div>
+
+<script>
+const DURATION = {{ exam.duration_minutes }} * 30;
+const EXAM_ID = {{ exam.id }};
+const CSRF = '{{ csrf_token }}';
+const QUESTIONS = [{% for q in questions %}{{ q.id }},{% endfor %}];
+let answers = {};
+let startTime = Date.now();
+let timeLeft = DURATION;
+let timerInterval;
+
+// Timer
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    const s = (timeLeft % 60).toString().padStart(2,'0');
+    const el = document.getElementById('timer');
+    el.textContent = m + ':' + s;
+    if (timeLeft <= 300) el.classList.add('warning');
+    if (timeLeft <= 60) { el.classList.remove('warning'); el.classList.add('danger'); }
+    if (timeLeft <= 0) { clearInterval(timerInterval); submitExam(); }
+  }, 1000);
+}
+
+function selectOption(qId, val, idx) {
+  const prev = answers[qId];
+  answers[qId] = val;
+  // Deselect all
+  ['A','B','C','D'].forEach(o => document.getElementById('opt-' + qId + '-' + o)?.classList.remove('selected'));
+  // Select current
+  document.getElementById('opt-' + qId + '-' + val)?.classList.add('selected');
+  // Update nav dot
+  const dot = document.getElementById('dot-' + idx);
+  if (dot) dot.classList.add('answered');
+  // Update count
+  document.getElementById('answeredCount').textContent = Object.keys(answers).length;
+}
+
+function scrollToQ(idx) {
+  document.querySelectorAll('.q-dot').forEach(d => d.classList.remove('current'));
+  document.getElementById('dot-' + idx)?.classList.add('current');
+  document.getElementById('q-' + idx)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function confirmSubmit() {
+  const answered = Object.keys(answers).length;
+  const total = QUESTIONS.length;
+  if (answered < total) {
+    if (!confirm(`You've answered ${answered}/${total} questions. Submit anyway?`)) return;
+  }
+  submitExam();
+}
+
+async function submitExam() {
+  clearInterval(timerInterval);
+  const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+  const resp = await fetch('/submit-exam/' + EXAM_ID + '/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+    body: JSON.stringify({ answers, time_taken: timeTaken })
+  });
+  const data = await resp.json();
+  if (data.success) showResult(data);
+}
+
+function showResult(data) {
+  document.getElementById('resultScore').textContent = data.score + '/' + data.total;
+  document.getElementById('resultPct').textContent = data.percentage + '% Score';
+  document.getElementById('resultEmoji').textContent = data.passed ? '🎉' : '📚';
+  const statusEl = document.getElementById('resultStatus');
+  statusEl.textContent = data.passed ? 'PASSED!' : 'NOT PASSED';
+  statusEl.className = 'result-status ' + (data.passed ? 'pass' : 'fail');
+  document.getElementById('resultMsg').textContent = data.passed ? 'Congratulations! You passed the exam.' : 'Keep practicing and try again next time.';
+  document.getElementById('resultLink').href = '/result/' + data.attempt_id + '/';
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+startTimer();
+</script>
+{% endblock %}

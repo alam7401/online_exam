@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Exam Results{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>{{ exam.title }} — Results</h1>
+    <p>{{ attempts.count }} submissions &bull; Avg: {{ avg_score }} &bull; Passed: {{ passed_count }}/{{ attempts.count }}</p>
+  </div>
+  <div class="stats-grid" style="margin-bottom:2rem">
+    <div class="stat-card"><div class="stat-num">{{ attempts.count }}</div><div class="stat-label">Total Attempts</div></div>
+    <div class="stat-card green"><div class="stat-num">{{ passed_count }}</div><div class="stat-label">Passed</div></div>
+    <div class="stat-card pink"><div class="stat-num">{{ attempts.count|add:"-"|add:passed_count }}</div><div class="stat-label">Failed</div></div>
+    <div class="stat-card yellow"><div class="stat-num">{{ avg_score }}</div><div class="stat-label">Avg Score</div></div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Score</th><th>Percentage</th><th>Status</th><th>Time</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for a in attempts %}
+          <tr>
+            <td><div style="font-weight:600">{{ a.student.get_full_name|default:a.student.username }}</div></td>
+            <td><span style="font-family:var(--mono);font-weight:700">{{ a.score }}/{{ a.total_marks }}</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.7rem">
+                <div class="progress-bar" style="width:80px"><div class="progress-fill {% if a.percentage >= 50 %}green{% endif %}" style="width:{{ a.percentage }}%"></div></div>
+                <span style="font-family:var(--mono);font-size:.85rem">{{ a.percentage }}%</span>
+              </div>
+            </td>
+            <td><span class="tag {% if a.passed %}tag-pass{% else %}tag-fail{% endif %}">{% if a.passed %}PASS{% else %}FAIL{% endif %}</span></td>
+            <td style="font-family:var(--mono);font-size:.85rem;color:var(--text-dim)">{{ a.time_taken }}s</td>
+            <td><a href="{% url 'exam_result_detail' a.id %}" class="btn btn-ghost btn-sm">View Detail</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><div class="icon">📊</div><p>No attempts yet</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

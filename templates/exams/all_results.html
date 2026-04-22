@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}All Results — ExamOnline{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>All Results</h1>
+    <p>{{ results.count }} total submitted exams</p>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Student</th><th>Exam</th><th>Score</th><th>Percentage</th><th>Status</th><th>Time Taken</th><th>Submitted</th></tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td>
+              <div style="font-weight:600">{{ r.student.get_full_name|default:r.student.username }}</div>
+              <div style="color:var(--text-dim);font-size:.8rem">@{{ r.student.username }}</div>
+            </td>
+            <td>{{ r.exam.title }}</td>
+            <td><span style="font-family:var(--mono);font-weight:700">{{ r.score }}/{{ r.total_marks }}</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.7rem">
+                <div class="progress-bar" style="width:80px">
+                  <div class="progress-fill {% if r.percentage >= 50 %}green{% endif %}" style="width:{{ r.percentage }}%"></div>
+                </div>
+                <span style="font-family:var(--mono);font-size:.85rem">{{ r.percentage }}%</span>
+              </div>
+            </td>
+            <td><span class="tag {% if r.passed %}tag-pass{% else %}tag-fail{% endif %}">{% if r.passed %}PASS{% else %}FAIL{% endif %}</span></td>
+            <td style="font-family:var(--mono);font-size:.85rem;color:var(--text-dim)">
+              {% if r.time_taken %}{{ r.time_taken }}s{% else %}—{% endif %}
+            </td>
+            <td style="color:var(--text-dim);font-size:.85rem">{{ r.submitted_at|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-dim)">No results yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

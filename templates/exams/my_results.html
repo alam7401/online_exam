@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}My Results{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>My Results</h1>
+    <p>{{ attempts.count }} exams completed</p>
+  </div>
+  {% if attempts %}
+  <div class="grid-2">
+    {% for a in attempts %}
+    <div class="card" style="border-left:3px solid {% if a.passed %}var(--accent3){% else %}var(--accent2){% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+        <div>
+          <div class="card-title">{{ a.exam.title }}</div>
+          <div style="color:var(--text-dim);font-size:.85rem">{{ a.exam.subject.name }}</div>
+        </div>
+        <span class="tag {% if a.passed %}tag-pass{% else %}tag-fail{% endif %}">{% if a.passed %}PASS{% else %}FAIL{% endif %}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        <div style="font-family:var(--mono);font-size:1.8rem;font-weight:700;color:{% if a.passed %}var(--accent3){% else %}var(--accent2){% endif %}">{{ a.percentage }}%</div>
+        <div>
+          <div style="font-family:var(--mono);font-size:.9rem">{{ a.score }}/{{ a.total_marks }} marks</div>
+          <div style="color:var(--text-dim);font-size:.8rem">{{ a.submitted_at|date:"M d, Y H:i" }}</div>
+        </div>
+      </div>
+      <div class="progress-bar" style="margin-bottom:1rem">
+        <div class="progress-fill {% if a.percentage >= 50 %}green{% endif %}" style="width:{{ a.percentage }}%"></div>
+      </div>
+      <a href="{% url 'exam_result_detail' a.id %}" class="btn btn-ghost btn-sm">Review Answers</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">📊</div><p>No exam results yet. <a href="{% url 'student_dashboard' %}">Take an exam</a></p></div>
+  {% endif %}
+</div>
+{% endblock %}
