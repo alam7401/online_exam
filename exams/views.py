@@ -126,6 +126,15 @@ def delete_question(request, q_id):
     return redirect('question_bank')
 
 @login_required
+def delete_exam(request, exam_id):
+    if request.user.role not in ('teacher', 'admin'):
+        return redirect('dashboard')
+    exam = get_object_or_404(Exam, id=exam_id, created_by=request.user)
+    exam.delete()
+    messages.success(request, 'Exam deleted successfully!')
+    return redirect('teacher_dashboard')
+
+@login_required
 def create_exam(request):
     if request.user.role not in ('teacher', 'admin'):
         return redirect('dashboard')

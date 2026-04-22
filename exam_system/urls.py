@@ -23,6 +23,7 @@ urlpatterns = [
     path('question-bank/', ev.question_bank, name='question_bank'),
     path('delete-question/<int:q_id>/', ev.delete_question, name='delete_question'),
     path('create-exam/', ev.create_exam, name='create_exam'),
+    path('delete-exam/<int:exam_id>/', ev.delete_exam, name='delete_exam'),
     path('exam-results/<int:exam_id>/', ev.exam_results, name='exam_results'),
     # Student
     path('student-dashboard/', ev.student_dashboard, name='student_dashboard'),
