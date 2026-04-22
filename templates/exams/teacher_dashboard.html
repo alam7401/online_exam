@@ -54,9 +54,11 @@
       </div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
         <a href="{% url 'exam_results' exam.id %}" class="btn btn-ghost btn-sm">View Results</a>
+        <div>
         <a href="{% url 'delete_exam' exam.id %}" 
           onclick="return confirm('Delete this exam?')"
           class="btn btn-sm" style="color:red;">🗑️ Delete</a>
+        </div>
       </div>
     </div>
     {% endfor %}
